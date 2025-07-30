@@ -1,8 +1,9 @@
 package com.spreadsheet.service;
 
-import com.spreadsheet.model.dto.SheetDataDto;
+import com.spreadsheet.model.dto.UpdateSheetRequest;
+import com.spreadsheet.model.dto.SheetResponse;
 
 public interface SheetDataService {
     
-    SheetDataDto updateData(SheetDataDto sheetDataDto);
+    SheetResponse updateSheet(Long sheetId, UpdateSheetRequest request);
 }

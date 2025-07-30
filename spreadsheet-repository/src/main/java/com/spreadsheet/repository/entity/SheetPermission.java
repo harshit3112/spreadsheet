@@ -1,18 +1,20 @@
 package com.spreadsheet.repository.entity;
 
+import com.spreadsheet.model.enums.Permission;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "sheet")
+@Table(name = "sheet_permission", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"sheet_id", "user_id"}))
 @Data
-public class Sheet {
+public class SheetPermission {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +24,11 @@ public class Sheet {
     @Column(name = "user_id", nullable = false, length = 255)
     private String userId;
     
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Permission cannot be null")
+    @Column(name = "permission", nullable = false)
+    private Permission permission;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -30,9 +37,7 @@ public class Sheet {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
     
-    @OneToMany(mappedBy = "sheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SheetData> sheetDataList;
-    
-    @OneToMany(mappedBy = "sheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SheetPermission> permissions;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sheet_id", nullable = false)
+    private Sheet sheet;
 }

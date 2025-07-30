@@ -1,10 +1,11 @@
 package com.spreadsheet.service;
 
-import com.spreadsheet.model.dto.SheetDto;
+import com.spreadsheet.model.dto.CreateSheetRequest;
+import com.spreadsheet.model.dto.SheetResponse;
 
 public interface SheetService {
     
-    SheetDto createSheet(SheetDto sheetDto);
+    Long createSheet(CreateSheetRequest request);
     
-    SheetDto getSheet(Long id);
+    SheetResponse getSheet(Long id);
 }

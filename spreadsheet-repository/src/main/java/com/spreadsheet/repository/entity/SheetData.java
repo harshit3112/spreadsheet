@@ -1,5 +1,6 @@
 package com.spreadsheet.repository.entity;
 
+import com.spreadsheet.model.enums.CellType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -29,8 +30,18 @@ public class SheetData {
     @Column(name = "column_number", nullable = false)
     private Integer columnNumber;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cell_type", nullable = false)
+    private CellType cellType;
+    
     @Column(name = "cell_value", columnDefinition = "TEXT")
     private String cellValue;
+    
+    @Column(name = "expression", columnDefinition = "TEXT")
+    private String expression;
+    
+    @Column(name = "evaluated_value", columnDefinition = "TEXT")
+    private String evaluatedValue;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -48,12 +48,6 @@ limits, code quality, workflow used to create it
 dependents
 
 
-vikas.s@cred.club
-anuj.jalan@cred.club
-
-7829076356
-
-
 
 Cell{
     int row;

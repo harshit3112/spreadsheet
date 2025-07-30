@@ -95,17 +95,17 @@ The application uses H2 in-memory database with two tables:
 ## API Endpoints
 
 ### Sheet Management
-- **POST** `/api/sheet/create` - Create a new sheet
-- **GET** `/api/sheet/{id}` - Get sheet by ID
+- **POST** `/v1/sheet` - Create a new sheet
+- **GET** `/v1/sheet/{id}` - Get sheet by ID
 
 ### Sheet Data Management
-- **PUT** `/api/sheet-data/update` - Update cell data
+- **PUT** `/v1/sheet-data` - Update cell data
 
 ## Sample API Requests
 
 ### Create a Sheet
 ```bash
-curl -X POST http://localhost:8080/api/sheet/create \
+curl -X POST http://localhost:8080/v1/sheet \
   -H "Content-Type: application/json" \
   -d '{
     "name": "My Spreadsheet",
@@ -117,12 +117,12 @@ curl -X POST http://localhost:8080/api/sheet/create \
 
 ### Get a Sheet
 ```bash
-curl -X GET http://localhost:8080/api/sheet/1
+curl -X GET http://localhost:8080/v1/sheet/1
 ```
 
 ### Update Cell Data
 ```bash
-curl -X PUT http://localhost:8080/api/sheet-data/update \
+curl -X PUT http://localhost:8080/v1/sheet-data \
   -H "Content-Type: application/json" \
   -d '{
     "sheetId": 1,

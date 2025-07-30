@@ -46,7 +46,7 @@ public class SheetDataServiceImpl implements SheetDataService {
     @Override
     @Transactional
     public SheetResponse updateSheet(Long sheetId, UpdateSheetRequest request) {
-        log.info("Updating sheet with ID: {} with {} cell updates", sheetId, request.cells().size());
+        log.info("Updating sheet with ID: {} with {} cell updates", sheetId, request.getCells().size());
         
         // Get or create lock for this sheet
         ReentrantLock lock = sheetLocks.computeIfAbsent(sheetId, k -> new ReentrantLock());
@@ -66,10 +66,10 @@ public class SheetDataServiceImpl implements SheetDataService {
                 sheetDataContext.put(cellKey, data.getCellValue());
             }
 
-            // Process each cell update
-            for (CellUpdate cellUpdate : request.cells()) {
-                updateCell(sheet, cellUpdate, sheetDataContext);
-            }
+        // Process each cell update
+        for (CellUpdate cellUpdate : request.getCells()) {
+            updateCell(sheet, cellUpdate, sheetDataContext);
+        }
 
             // Re-evaluate all expressions after updates
             reevaluateExpressions(sheetId, sheetDataContext);
@@ -87,8 +87,8 @@ public class SheetDataServiceImpl implements SheetDataService {
     private void updateCell(Sheet sheet, CellUpdate cellUpdate, Map<String, String> sheetDataContext) {
         Optional<SheetData> existingData = sheetDataRepository.findBySheetIdAndRowNumberAndColumnNumber(
                 sheet.getId(), 
-                cellUpdate.rowNumber(), 
-                cellUpdate.columnNumber()
+                cellUpdate.getRowNumber(), 
+                cellUpdate.getColumnNumber()
         );
 
         SheetData sheetData;
@@ -97,34 +97,34 @@ public class SheetDataServiceImpl implements SheetDataService {
         } else {
             sheetData = new SheetData();
             sheetData.setSheet(sheet);
-            sheetData.setRowNumber(cellUpdate.rowNumber());
-            sheetData.setColumnNumber(cellUpdate.columnNumber());
+            sheetData.setRowNumber(cellUpdate.getRowNumber());
+            sheetData.setColumnNumber(cellUpdate.getColumnNumber());
         }
 
-        sheetData.setCellType(cellUpdate.cellType());
+        sheetData.setCellType(cellUpdate.getCellType());
         
-        if (cellUpdate.cellType() == CellType.VALUE) {
-            sheetData.setCellValue(cellUpdate.value() != null ? cellUpdate.value().toString() : "");
+        if (cellUpdate.getCellType() == CellType.VALUE) {
+            sheetData.setCellValue(cellUpdate.getValue() != null ? cellUpdate.getValue().toString() : "");
             sheetData.setExpression(null);
             sheetData.setEvaluatedValue(sheetData.getCellValue());
         } else {
-            sheetData.setExpression(cellUpdate.expression());
-            sheetData.setCellValue(cellUpdate.expression());
+            sheetData.setExpression(cellUpdate.getExpression());
+            sheetData.setCellValue(cellUpdate.getExpression());
             
             // Evaluate expression
-            String evaluatedValue = cellEvaluator.evaluateExpression(cellUpdate.expression(), sheetDataContext);
+            String evaluatedValue = cellEvaluator.evaluateExpression(cellUpdate.getExpression(), sheetDataContext);
             sheetData.setEvaluatedValue(evaluatedValue);
         }
 
         sheetDataRepository.save(sheetData);
         
         // Update context for subsequent evaluations
-        String cellKey = convertToExcelNotation(cellUpdate.rowNumber(), cellUpdate.columnNumber());
+        String cellKey = convertToExcelNotation(cellUpdate.getRowNumber(), cellUpdate.getColumnNumber());
         sheetDataContext.put(cellKey, sheetData.getEvaluatedValue());
         
         log.debug("Updated cell {}:{} with type: {}, value: {}", 
-                cellUpdate.rowNumber(), cellUpdate.columnNumber(), 
-                cellUpdate.cellType(), sheetData.getEvaluatedValue());
+                cellUpdate.getRowNumber(), cellUpdate.getColumnNumber(), 
+                cellUpdate.getCellType(), sheetData.getEvaluatedValue());
     }
     
     private void reevaluateExpressions(Long sheetId, Map<String, String> sheetDataContext) {
@@ -173,28 +173,33 @@ public class SheetDataServiceImpl implements SheetDataService {
             String cellKey = convertToExcelNotation(data.getRowNumber(), data.getColumnNumber());
             Object value = data.getCellType() == CellType.VALUE ? data.getCellValue() : data.getEvaluatedValue();
             
-            Cell cell = new Cell(
-                    data.getCellType(),
-                    value,
-                    data.getExpression()
-            );
+            Cell cell = new Cell();
+            cell.setCellType(data.getCellType());
+            cell.setValue(value);
+            cell.setExpression(data.getExpression());
             sheetDataMap.put(cellKey, cell);
         }
         
         // Get permissions
         List<SheetPermission> permissions = sheetPermissionRepository.findBySheetId(sheet.getId());
         List<UserPermission> userPermissions = permissions.stream()
-                .map(p -> new UserPermission(p.getUserId(), p.getPermission()))
+                .map(p -> {
+                    UserPermission userPermission = new UserPermission();
+                    userPermission.setUserId(p.getUserId());
+                    userPermission.setPermission(p.getPermission());
+                    return userPermission;
+                })
                 .collect(Collectors.toList());
         
         Long createdAt = sheet.getCreatedAt().toEpochSecond(ZoneOffset.UTC);
         
-        return new SheetResponse(
-                createdAt,
-                sheet.getUserId(),
-                sheetDataMap,
-                userPermissions
-        );
+        SheetResponse response = new SheetResponse();
+        response.setCreatedAt(createdAt);
+        response.setUserId(sheet.getUserId());
+        response.setSheetData(sheetDataMap);
+        response.setUserPermissions(userPermissions);
+        
+        return response;
     }
     
     private String convertToExcelNotation(int row, int column) {

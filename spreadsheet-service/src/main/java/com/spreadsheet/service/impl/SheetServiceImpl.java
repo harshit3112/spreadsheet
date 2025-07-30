@@ -37,21 +37,23 @@ public class SheetServiceImpl implements SheetService {
     @Override
     @Transactional
     public Long createSheet(CreateSheetRequest request) {
-        log.info("Creating new sheet for user: {}", request.userId());
+        log.info("Creating new sheet for user: {}", request.getUserId());
         
         Sheet sheet = new Sheet();
-        sheet.setUserId(request.userId());
+        sheet.setName(request.getName());
+        sheet.setUserId(request.getUserId());
+        sheet.setDescription(request.getDescription());
         
         Sheet savedSheet = sheetRepository.save(sheet);
         
         // Create default permission for the creator
         SheetPermission permission = new SheetPermission();
         permission.setSheet(savedSheet);
-        permission.setUserId(request.userId());
+        permission.setUserId(request.getUserId());
         permission.setPermission(Permission.EDIT);
         sheetPermissionRepository.save(permission);
         
-        log.info("Created sheet with ID: {} for user: {}", savedSheet.getId(), request.userId());
+        log.info("Created sheet with ID: {} for user: {}", savedSheet.getId(), request.getUserId());
         return savedSheet.getId();
     }
 
@@ -71,18 +73,22 @@ public class SheetServiceImpl implements SheetService {
             String cellKey = convertToExcelNotation(data.getRowNumber(), data.getColumnNumber());
             Object value = data.getCellType() == CellType.VALUE ? data.getCellValue() : data.getEvaluatedValue();
             
-            Cell cell = new Cell(
-                    data.getCellType(),
-                    value,
-                    data.getExpression()
-            );
+            Cell cell = new Cell();
+            cell.setCellType(data.getCellType());
+            cell.setValue(value);
+            cell.setExpression(data.getExpression());
             sheetDataMap.put(cellKey, cell);
         }
         
         // Get permissions
         List<SheetPermission> permissions = sheetPermissionRepository.findBySheetId(id);
         List<UserPermission> userPermissions = permissions.stream()
-                .map(p -> new UserPermission(p.getUserId(), p.getPermission()))
+                .map(p -> {
+                    UserPermission userPermission = new UserPermission();
+                    userPermission.setUserId(p.getUserId());
+                    userPermission.setPermission(p.getPermission());
+                    return userPermission;
+                })
                 .collect(Collectors.toList());
         
         Long createdAt = sheet.getCreatedAt().toEpochSecond(ZoneOffset.UTC);
@@ -90,12 +96,13 @@ public class SheetServiceImpl implements SheetService {
         log.info("Retrieved sheet with ID: {} containing {} cells and {} permissions", 
                 id, sheetDataMap.size(), userPermissions.size());
         
-        return new SheetResponse(
-                createdAt,
-                sheet.getUserId(),
-                sheetDataMap,
-                userPermissions
-        );
+        SheetResponse response = new SheetResponse();
+        response.setCreatedAt(createdAt);
+        response.setUserId(sheet.getUserId());
+        response.setSheetData(sheetDataMap);
+        response.setUserPermissions(userPermissions);
+        
+        return response;
     }
     
     private String convertToExcelNotation(int row, int column) {

@@ -2,6 +2,7 @@ package com.spreadsheet.repository.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,9 +19,18 @@ public class Sheet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @NotBlank(message = "Sheet name cannot be blank")
+    @Size(max = 255, message = "Sheet name cannot exceed 255 characters")
+    @Column(name = "name", nullable = false, length = 255)
+    private String name;
+    
     @NotBlank(message = "User ID cannot be blank")
     @Column(name = "user_id", nullable = false, length = 255)
     private String userId;
+    
+    @Size(max = 500, message = "Description cannot exceed 500 characters")
+    @Column(name = "description", length = 500)
+    private String description;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -2,17 +2,14 @@ package com.spreadsheet.model.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
 
 import java.util.List;
 
-public record UpdateSheetRequest(
-        @NotEmpty(message = "Cells list cannot be empty")
-        @Valid
-        List<CellUpdate> cells
-) {
-    public UpdateSheetRequest {
-        if (cells == null || cells.isEmpty()) {
-            throw new IllegalArgumentException("Cells list cannot be null or empty");
-        }
-    }
+@Data
+public class UpdateSheetRequest {
+    
+    @NotEmpty(message = "Cells list cannot be empty")
+    @Valid
+    private List<CellUpdate> cells;
 }

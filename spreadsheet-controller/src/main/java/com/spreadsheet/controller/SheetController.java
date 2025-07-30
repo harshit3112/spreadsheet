@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/sheet")
 @Tag(name = "Sheet Management", description = "APIs for managing spreadsheets")
 @Slf4j
+@RequiredArgsConstructor
 public class SheetController {
 
-    @Autowired
-    private SheetService sheetService;
+    private final SheetService sheetService;
 
     @PostMapping
     @Operation(summary = "Create a new sheet", description = "Creates a new spreadsheet for the specified user")
@@ -31,7 +31,7 @@ public class SheetController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("Sheet created successfully", sheetId));
         } catch (Exception ex) {
-            log.error("Failed to create sheet for user: {}", request.userId(), ex);
+            log.error("Failed to create sheet for user: {}", request.getUserId(), ex);
             throw new RuntimeException("Failed to create sheet: " + ex.getMessage());
         }
     }

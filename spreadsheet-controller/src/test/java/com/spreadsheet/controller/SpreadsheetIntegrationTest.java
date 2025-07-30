@@ -36,7 +36,10 @@ class SpreadsheetIntegrationTest {
     @Test
     void testCreateAndRetrieveSheet() throws Exception {
         // Create a new sheet
-        CreateSheetRequest createRequest = new CreateSheetRequest("testUser");
+        CreateSheetRequest createRequest = new CreateSheetRequest();
+        createRequest.setName("Test Sheet");
+        createRequest.setUserId("testUser");
+        createRequest.setDescription("Test Description");
         
         MvcResult createResult = mockMvc.perform(post("/v1/sheet")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,7 +70,9 @@ class SpreadsheetIntegrationTest {
     @Test
     void testUpdateSheetWithValues() throws Exception {
         // Create a new sheet
-        CreateSheetRequest createRequest = new CreateSheetRequest("testUser");
+        CreateSheetRequest createRequest = new CreateSheetRequest();
+        createRequest.setName("Test Sheet");
+        createRequest.setUserId("testUser");
         
         MvcResult createResult = mockMvc.perform(post("/v1/sheet")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -79,13 +84,26 @@ class SpreadsheetIntegrationTest {
                 .get("data").asLong();
 
         // Update sheet with cell values
-        CellUpdate cellUpdate1 = new CellUpdate(1, 1, CellType.VALUE, "10", null);
-        CellUpdate cellUpdate2 = new CellUpdate(1, 2, CellType.VALUE, "20", null);
-        CellUpdate cellUpdate3 = new CellUpdate(1, 3, CellType.EXPRESSION, null, "=A1+B1");
+        CellUpdate cellUpdate1 = new CellUpdate();
+        cellUpdate1.setRowNumber(1);
+        cellUpdate1.setColumnNumber(1);
+        cellUpdate1.setCellType(CellType.VALUE);
+        cellUpdate1.setValue("10");
         
-        UpdateSheetRequest updateRequest = new UpdateSheetRequest(
-                Arrays.asList(cellUpdate1, cellUpdate2, cellUpdate3)
-        );
+        CellUpdate cellUpdate2 = new CellUpdate();
+        cellUpdate2.setRowNumber(1);
+        cellUpdate2.setColumnNumber(2);
+        cellUpdate2.setCellType(CellType.VALUE);
+        cellUpdate2.setValue("20");
+        
+        CellUpdate cellUpdate3 = new CellUpdate();
+        cellUpdate3.setRowNumber(1);
+        cellUpdate3.setColumnNumber(3);
+        cellUpdate3.setCellType(CellType.EXPRESSION);
+        cellUpdate3.setExpression("=A1+B1");
+        
+        UpdateSheetRequest updateRequest = new UpdateSheetRequest();
+        updateRequest.setCells(Arrays.asList(cellUpdate1, cellUpdate2, cellUpdate3));
 
         mockMvc.perform(put("/v1/sheet/{id}", sheetId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +126,9 @@ class SpreadsheetIntegrationTest {
     @Test
     void testUpdateSheetWithComplexExpressions() throws Exception {
         // Create a new sheet
-        CreateSheetRequest createRequest = new CreateSheetRequest("testUser");
+        CreateSheetRequest createRequest = new CreateSheetRequest();
+        createRequest.setName("Test Sheet");
+        createRequest.setUserId("testUser");
         
         MvcResult createResult = mockMvc.perform(post("/v1/sheet")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -120,15 +140,38 @@ class SpreadsheetIntegrationTest {
                 .get("data").asLong();
 
         // Update sheet with complex expressions
-        CellUpdate cellUpdate1 = new CellUpdate(1, 1, CellType.VALUE, "5", null);
-        CellUpdate cellUpdate2 = new CellUpdate(2, 1, CellType.VALUE, "10", null);
-        CellUpdate cellUpdate3 = new CellUpdate(3, 1, CellType.VALUE, "15", null);
-        CellUpdate cellUpdate4 = new CellUpdate(4, 1, CellType.EXPRESSION, null, "=SUM(A1:A3)");
-        CellUpdate cellUpdate5 = new CellUpdate(5, 1, CellType.EXPRESSION, null, "=AVG(A1:A3)");
+        CellUpdate cellUpdate1 = new CellUpdate();
+        cellUpdate1.setRowNumber(1);
+        cellUpdate1.setColumnNumber(1);
+        cellUpdate1.setCellType(CellType.VALUE);
+        cellUpdate1.setValue("5");
         
-        UpdateSheetRequest updateRequest = new UpdateSheetRequest(
-                Arrays.asList(cellUpdate1, cellUpdate2, cellUpdate3, cellUpdate4, cellUpdate5)
-        );
+        CellUpdate cellUpdate2 = new CellUpdate();
+        cellUpdate2.setRowNumber(2);
+        cellUpdate2.setColumnNumber(1);
+        cellUpdate2.setCellType(CellType.VALUE);
+        cellUpdate2.setValue("10");
+        
+        CellUpdate cellUpdate3 = new CellUpdate();
+        cellUpdate3.setRowNumber(3);
+        cellUpdate3.setColumnNumber(1);
+        cellUpdate3.setCellType(CellType.VALUE);
+        cellUpdate3.setValue("15");
+        
+        CellUpdate cellUpdate4 = new CellUpdate();
+        cellUpdate4.setRowNumber(4);
+        cellUpdate4.setColumnNumber(1);
+        cellUpdate4.setCellType(CellType.EXPRESSION);
+        cellUpdate4.setExpression("=SUM(A1:A3)");
+        
+        CellUpdate cellUpdate5 = new CellUpdate();
+        cellUpdate5.setRowNumber(5);
+        cellUpdate5.setColumnNumber(1);
+        cellUpdate5.setCellType(CellType.EXPRESSION);
+        cellUpdate5.setExpression("=AVG(A1:A3)");
+        
+        UpdateSheetRequest updateRequest = new UpdateSheetRequest();
+        updateRequest.setCells(Arrays.asList(cellUpdate1, cellUpdate2, cellUpdate3, cellUpdate4, cellUpdate5));
 
         mockMvc.perform(put("/v1/sheet/{id}", sheetId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -142,7 +185,9 @@ class SpreadsheetIntegrationTest {
     @Test
     void testCreateSheetWithInvalidInput() throws Exception {
         // Test with empty user ID
-        CreateSheetRequest invalidRequest = new CreateSheetRequest("");
+        CreateSheetRequest invalidRequest = new CreateSheetRequest();
+        invalidRequest.setName("Test");
+        invalidRequest.setUserId("");
         
         mockMvc.perform(post("/v1/sheet")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -152,8 +197,14 @@ class SpreadsheetIntegrationTest {
 
     @Test
     void testUpdateNonExistentSheet() throws Exception {
-        CellUpdate cellUpdate = new CellUpdate(1, 1, CellType.VALUE, "10", null);
-        UpdateSheetRequest updateRequest = new UpdateSheetRequest(Arrays.asList(cellUpdate));
+        CellUpdate cellUpdate = new CellUpdate();
+        cellUpdate.setRowNumber(1);
+        cellUpdate.setColumnNumber(1);
+        cellUpdate.setCellType(CellType.VALUE);
+        cellUpdate.setValue("10");
+        
+        UpdateSheetRequest updateRequest = new UpdateSheetRequest();
+        updateRequest.setCells(Arrays.asList(cellUpdate));
 
         mockMvc.perform(put("/v1/sheet/{id}", 999L)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -174,7 +225,9 @@ class SpreadsheetIntegrationTest {
     @Test
     void testUpdateSheetWithInvalidCellUpdate() throws Exception {
         // Create a new sheet first
-        CreateSheetRequest createRequest = new CreateSheetRequest("testUser");
+        CreateSheetRequest createRequest = new CreateSheetRequest();
+        createRequest.setName("Test Sheet");
+        createRequest.setUserId("testUser");
         
         MvcResult createResult = mockMvc.perform(post("/v1/sheet")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -186,8 +239,14 @@ class SpreadsheetIntegrationTest {
                 .get("data").asLong();
 
         // Test with invalid row number
-        CellUpdate invalidCellUpdate = new CellUpdate(0, 1, CellType.VALUE, "10", null);
-        UpdateSheetRequest updateRequest = new UpdateSheetRequest(Arrays.asList(invalidCellUpdate));
+        CellUpdate invalidCellUpdate = new CellUpdate();
+        invalidCellUpdate.setRowNumber(0);
+        invalidCellUpdate.setColumnNumber(1);
+        invalidCellUpdate.setCellType(CellType.VALUE);
+        invalidCellUpdate.setValue("10");
+        
+        UpdateSheetRequest updateRequest = new UpdateSheetRequest();
+        updateRequest.setCells(Arrays.asList(invalidCellUpdate));
 
         mockMvc.perform(put("/v1/sheet/{id}", sheetId)
                 .contentType(MediaType.APPLICATION_JSON)

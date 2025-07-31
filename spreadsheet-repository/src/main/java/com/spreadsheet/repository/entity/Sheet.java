@@ -24,13 +24,9 @@ public class Sheet {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
     
-    @NotBlank(message = "User ID cannot be blank")
+//    @NotBlank(message = "User ID cannot be blank") TODO
     @Column(name = "user_id", nullable = false, length = 255)
     private String userId;
-    
-    @Size(max = 500, message = "Description cannot exceed 500 characters")
-    @Column(name = "description", length = 500)
-    private String description;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

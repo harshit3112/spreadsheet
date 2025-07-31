@@ -13,7 +13,4 @@ public class CreateSheetRequest {
     
     @NotBlank(message = "User ID cannot be blank")
     private String userId;
-    
-    @Size(max = 500, message = "Description cannot exceed 500 characters")
-    private String description;
 }

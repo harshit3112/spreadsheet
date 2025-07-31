@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/sheet")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Sheet Management", description = "APIs for managing spreadsheets")
 @Slf4j
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class SheetController {
     @Operation(summary = "Get sheet by ID", description = "Retrieves a spreadsheet by its unique identifier")
     public ResponseEntity<ApiResponse<SheetResponse>> getSheet(
             @Parameter(description = "Sheet ID", required = true)
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         try {
             SheetResponse sheet = sheetService.getSheet(id);
             return ResponseEntity.ok(ApiResponse.success("Sheet retrieved successfully", sheet));

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/sheet-data")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Sheet Data Management", description = "APIs for managing spreadsheet cell data")
 @Slf4j
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class SheetDataController {
     @Operation(summary = "Update sheet data", description = "Updates multiple cells in a spreadsheet with locking to prevent concurrent updates")
     public ResponseEntity<ApiResponse<SheetResponse>> updateSheet(
             @Parameter(description = "Sheet ID", required = true)
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateSheetRequest request) {
         try {
             SheetResponse updatedSheet = sheetDataService.updateSheet(id, request);

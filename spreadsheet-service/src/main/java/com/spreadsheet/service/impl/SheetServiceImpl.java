@@ -42,8 +42,7 @@ public class SheetServiceImpl implements SheetService {
         Sheet sheet = new Sheet();
         sheet.setName(request.getName());
         sheet.setUserId(request.getUserId());
-        sheet.setDescription(request.getDescription());
-        
+
         Sheet savedSheet = sheetRepository.save(sheet);
         
         // Create default permission for the creator

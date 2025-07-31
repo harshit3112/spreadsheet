@@ -10,6 +10,7 @@ import com.spreadsheet.repository.entity.Sheet;
 import com.spreadsheet.repository.entity.SheetData;
 import com.spreadsheet.repository.entity.SheetPermission;
 import com.spreadsheet.service.SheetService;
+import com.spreadsheet.service.UserProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,11 +34,19 @@ public class SheetServiceImpl implements SheetService {
     
     @Autowired
     private SheetPermissionRepository sheetPermissionRepository;
+    
+    @Autowired
+    private UserProfileService userProfileService;
 
     @Override
     @Transactional
     public Long createSheet(CreateSheetRequest request) {
         log.info("Creating new sheet for user: {}", request.getUserId());
+        
+        // Validate user exists and is active
+        if (!userProfileService.isValidUser(request.getUserId())) {
+            throw new RuntimeException("Invalid user ID: " + request.getUserId());
+        }
         
         Sheet sheet = new Sheet();
         sheet.setName(request.getName());

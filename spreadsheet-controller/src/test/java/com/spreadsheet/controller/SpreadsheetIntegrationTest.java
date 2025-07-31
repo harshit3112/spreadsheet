@@ -39,8 +39,7 @@ class SpreadsheetIntegrationTest {
         CreateSheetRequest createRequest = new CreateSheetRequest();
         createRequest.setName("Test Sheet");
         createRequest.setUserId("testUser");
-        createRequest.setDescription("Test Description");
-        
+
         MvcResult createResult = mockMvc.perform(post("/v1/sheet")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))

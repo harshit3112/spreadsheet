@@ -38,6 +38,12 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
 
+# User Profile Service Configuration
+user:
+  profile:
+    service:
+      url: http://localhost:8080
+
 # Logging Configuration
 logging:
   level:

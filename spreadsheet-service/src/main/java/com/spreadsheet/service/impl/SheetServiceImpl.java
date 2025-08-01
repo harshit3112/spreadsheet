@@ -10,6 +10,7 @@ import com.spreadsheet.repository.entity.Sheet;
 import com.spreadsheet.repository.entity.SheetData;
 import com.spreadsheet.repository.entity.SheetPermission;
 import com.spreadsheet.service.SheetService;
+import com.spreadsheet.service.ShardingService;
 import com.spreadsheet.service.UserProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class SheetServiceImpl implements SheetService {
     
     @Autowired
     private UserProfileService userProfileService;
+    
+    @Autowired
+    private ShardingService shardingService;
 
     @Override
     @Transactional
@@ -52,9 +56,15 @@ public class SheetServiceImpl implements SheetService {
         sheet.setName(request.getName());
         sheet.setUserId(request.getUserId());
 
+        // NOTE: The initial sheet creation will go to the default database
+        // because we need the ID to determine the shard, but we need the shard to determine the database
+        // This is a limitation of ID-based sharding for creation operations
         Sheet savedSheet = sheetRepository.save(sheet);
         
-        // Create default permission for the creator
+        // Now determine shard for subsequent operations (like permissions)
+        shardingService.setShardForSheet(savedSheet.getId());
+        
+        // Create default permission for the creator - this will go to the correct shard
         SheetPermission permission = new SheetPermission();
         permission.setSheet(savedSheet);
         permission.setUserId(request.getUserId());
@@ -69,6 +79,9 @@ public class SheetServiceImpl implements SheetService {
     @Transactional(readOnly = true)
     public SheetResponse getSheet(Long id) {
         log.info("Fetching sheet with ID: {}", id);
+        
+        // Determine shard for sheet access
+        shardingService.setShardForSheet(id);
         
         Sheet sheet = sheetRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sheet not found with id: " + id));

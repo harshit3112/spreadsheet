@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spreadsheet-application
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5433/spreadsheet_db
+    driver-class-name: org.postgresql.Driver
+    username: spreadsheet_user
+    password: spreadsheet_password
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 20000
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+# Logging Configuration
+logging:
+  level:
+    com.spreadsheet: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO

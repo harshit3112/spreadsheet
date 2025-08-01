@@ -5,16 +5,30 @@ spring:
   application:
     name: spreadsheet-application
   
+  # Write DataSource Configuration (Master)
   datasource:
-    url: jdbc:postgresql://localhost:5433/spreadsheet_db
-    driver-class-name: org.postgresql.Driver
-    username: spreadsheet_user
-    password: spreadsheet_password
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      idle-timeout: 300000
-      connection-timeout: 20000
+    write:
+      url: jdbc:postgresql://localhost:5433/spreadsheet_db
+      driver-class-name: org.postgresql.Driver
+      username: spreadsheet_user
+      password: spreadsheet_password
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 2
+        idle-timeout: 300000
+        connection-timeout: 20000
+    
+    # Read DataSource Configuration (Replica - for now pointing to same DB)
+    read:
+      url: jdbc:postgresql://localhost:5433/spreadsheet_db
+      driver-class-name: org.postgresql.Driver
+      username: spreadsheet_user
+      password: spreadsheet_password
+      hikari:
+        maximum-pool-size: 20
+        minimum-idle: 5
+        idle-timeout: 300000
+        connection-timeout: 20000
   
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -32,6 +46,30 @@ spring:
   sql:
     init:
       mode: never
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# Redisson Configuration
+redisson:
+  config: |
+    singleServerConfig:
+      address: "redis://localhost:6379"
+      connectionPoolSize: 10
+      connectionMinimumIdleSize: 5
+      timeout: 3000
+      retryAttempts: 3
+      retryInterval: 1500
 
 # Database profiles for different environments
 ---

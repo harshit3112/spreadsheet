@@ -1,0 +1,67 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spreadsheet-application
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5433/spreadsheet_db
+    driver-class-name: org.postgresql.Driver
+    username: spreadsheet_user
+    password: spreadsheet_password
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 20000
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# Redisson Configuration
+redisson:
+  config: |
+    singleServerConfig:
+      address: "redis://localhost:6379"
+      connectionPoolSize: 10
+      connectionMinimumIdleSize: 5
+      timeout: 3000
+      retryAttempts: 3
+      retryInterval: 1500
+
+# User Profile Service Configuration
+user:
+  profile:
+    service:
+      url: http://localhost:8087
+
+# Logging Configuration
+logging:
+  level:
+    com.spreadsheet: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG

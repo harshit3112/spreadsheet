@@ -9,6 +9,8 @@ import com.spreadsheet.repository.entity.Sheet;
 import com.spreadsheet.repository.entity.SheetData;
 import com.spreadsheet.repository.entity.SheetPermission;
 import com.spreadsheet.service.CellEvaluator;
+import com.spreadsheet.service.DistributedLockService;
+import com.spreadsheet.service.ShardingService;
 import com.spreadsheet.service.SheetDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,47 +40,53 @@ public class SheetDataServiceImpl implements SheetDataService {
     @Autowired
     private CellEvaluator cellEvaluator;
 
-    // Sheet-level locks to prevent concurrent updates
-    private final ConcurrentHashMap<Long, ReentrantLock> sheetLocks = new ConcurrentHashMap<>();
+    @Autowired
+    private DistributedLockService distributedLockService;
+    
+    @Autowired
+    private ShardingService shardingService;
 
     @Override
     @Transactional
     public SheetResponse updateSheet(Long sheetId, UpdateSheetRequest request) {
         log.info("Updating sheet with ID: {} with {} cell updates", sheetId, request.getCells().size());
         
-        // Get or create lock for this sheet
-        ReentrantLock lock = sheetLocks.computeIfAbsent(sheetId, k -> new ReentrantLock());
+        // Determine shard for sheet update
+        shardingService.setShardForSheet(sheetId);
         
-        lock.lock();
+        String lockKey = "sheet:update:" + sheetId;
+        
         try {
-            // Verify sheet exists
-            Sheet sheet = sheetRepository.findById(sheetId)
-                    .orElseThrow(() -> new RuntimeException("Sheet not found with id: " + sheetId));
+            return distributedLockService.executeWithLock(lockKey, () -> {
+                // Verify sheet exists
+                Sheet sheet = sheetRepository.findById(sheetId)
+                        .orElseThrow(() -> new RuntimeException("Sheet not found with id: " + sheetId));
 
-            // Get all existing sheet data for evaluation context
-            List<SheetData> existingData = sheetDataRepository.findBySheetId(sheetId);
-            Map<String, String> sheetDataContext = new HashMap<>();
-            
-            for (SheetData data : existingData) {
-                String cellKey = convertToExcelNotation(data.getRowNumber(), data.getColumnNumber());
-                sheetDataContext.put(cellKey, data.getCellValue());
-            }
+                // Get all existing sheet data for evaluation context
+                List<SheetData> existingData = sheetDataRepository.findBySheetId(sheetId);
+                Map<String, String> sheetDataContext = new HashMap<>();
+                
+                for (SheetData data : existingData) {
+                    String cellKey = convertToExcelNotation(data.getRowNumber(), data.getColumnNumber());
+                    sheetDataContext.put(cellKey, data.getCellValue());
+                }
 
-        // Process each cell update
-        for (CellUpdate cellUpdate : request.getCells()) {
-            updateCell(sheet, cellUpdate, sheetDataContext);
-        }
+                // Process each cell update
+                for (CellUpdate cellUpdate : request.getCells()) {
+                    updateCell(sheet, cellUpdate, sheetDataContext);
+                }
 
-            // Re-evaluate all expressions after updates
-            reevaluateExpressions(sheetId, sheetDataContext);
+                // Re-evaluate all expressions after updates
+                reevaluateExpressions(sheetId, sheetDataContext);
 
-            log.info("Successfully updated sheet with ID: {}", sheetId);
-            
-            // Return updated sheet response
-            return buildSheetResponse(sheet);
-            
-        } finally {
-            lock.unlock();
+                log.info("Successfully updated sheet with ID: {}", sheetId);
+                
+                // Return updated sheet response
+                return buildSheetResponse(sheet);
+            });
+        } catch (Exception e) {
+            log.error("Failed to update sheet with ID: {} due to: {}", sheetId, e.getMessage(), e);
+            throw new RuntimeException("Failed to update sheet: " + e.getMessage(), e);
         }
     }
     

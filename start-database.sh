@@ -9,14 +9,14 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if docker-compose is available
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ docker-compose is not installed. Please install docker-compose first."
+# Check if docker compose is available
+if ! docker compose version &> /dev/null; then
+    echo "❌ docker compose is not available. Please install Docker Desktop or Docker Compose plugin."
     exit 1
 fi
 
 echo "📦 Starting PostgreSQL and pgAdmin containers..."
-docker-compose up -d
+docker compose up -d
 
 echo "⏳ Waiting for PostgreSQL to be ready..."
 sleep 10
@@ -51,4 +51,4 @@ echo "🚀 You can now start your Spring Boot application:"
 echo "  mvn spring-boot:run"
 echo ""
 echo "📋 To stop the database:"
-echo "  docker-compose down"
+echo "  docker compose down"

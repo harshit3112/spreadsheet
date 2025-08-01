@@ -71,13 +71,13 @@ public class SheetDataServiceImpl implements SheetDataService {
             updateCell(sheet, cellUpdate, sheetDataContext);
         }
 
-            // Re-evaluate all expressions after updates
-            reevaluateExpressions(sheetId, sheetDataContext);
+        // Re-evaluate all expressions after updates
+        reevaluateExpressions(sheetId, sheetDataContext);
 
-            log.info("Successfully updated sheet with ID: {}", sheetId);
-            
-            // Return updated sheet response
-            return buildSheetResponse(sheet);
+        log.info("Successfully updated sheet with ID: {}", sheetId);
+
+        // Return updated sheet response
+        return buildSheetResponse(sheet);
             
         } finally {
             lock.unlock();

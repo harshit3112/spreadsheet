@@ -34,18 +34,18 @@ public class CellEvaluator {
                 cleanExpression = cleanExpression.substring(1);
             }
             
-            // Replace cell references with their values
+            // Handle built-in functions first (before resolving cell references)
+            if (cleanExpression.toUpperCase().startsWith("SUM(")) {
+                return evaluateSum(cleanExpression, sheetData);
+            } else if (cleanExpression.toUpperCase().startsWith("AVG(")) {
+                return evaluateAverage(cleanExpression, sheetData);
+            } else if (cleanExpression.toUpperCase().startsWith("COUNT(")) {
+                return evaluateCount(cleanExpression, sheetData);
+            }
+            
+            // Replace cell references with their values for arithmetic expressions
             String resolvedExpression = resolveCellReferences(cleanExpression, sheetData);
             log.debug("Resolved expression: {}", resolvedExpression);
-            
-            // Handle built-in functions
-            if (resolvedExpression.toUpperCase().startsWith("SUM(")) {
-                return evaluateSum(resolvedExpression, sheetData);
-            } else if (resolvedExpression.toUpperCase().startsWith("AVG(")) {
-                return evaluateAverage(resolvedExpression, sheetData);
-            } else if (resolvedExpression.toUpperCase().startsWith("COUNT(")) {
-                return evaluateCount(resolvedExpression, sheetData);
-            }
             
             // Evaluate arithmetic expression
             if (ARITHMETIC_PATTERN.matcher(resolvedExpression).matches()) {

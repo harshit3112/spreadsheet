@@ -1,36 +1,30 @@
-server:
-  port: 0
-
+# Test configuration - uses H2 in-memory database
 spring:
-  application:
-    name: spreadsheet-application-test
-  
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: password
-  
-  h2:
-    console:
-      enabled: false
   
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
   
-  sql:
-    init:
-      mode: never
+  h2:
+    console:
+      enabled: false
 
-# Disable Swagger for tests
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
+# User Profile Service Configuration for testing
+user:
+  profile:
+    service:
+      url: http://localhost:8087
 
 # Logging Configuration for tests
 logging:
@@ -38,4 +32,5 @@ logging:
     com.spreadsheet: INFO
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
-    org.springframework.test: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    root: WARN

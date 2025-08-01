@@ -1,10 +1,15 @@
 package com.spreadsheet.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spreadsheet.model.dto.ApiResponse;
 import com.spreadsheet.model.dto.UserResponse;
 import com.spreadsheet.service.UserProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,7 +25,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${user.profile.service.url:http://localhost:8080}")
+    @Value("${user.profile.service.url:http://localhost:8087}")
     private String userProfileServiceUrl;
 
     @Override
@@ -38,11 +43,19 @@ public class UserProfileServiceImpl implements UserProfileService {
             }
             
             String url = userProfileServiceUrl + "/v1/user/" + userIdLong;
-            ResponseEntity<UserResponse> response = restTemplate.getForEntity(url, UserResponse.class);
+
+            // Use exchange method with ParameterizedTypeReference to handle generic types properly
+            ResponseEntity<ApiResponse> response = restTemplate.exchange(
+                url, 
+                HttpMethod.GET, 
+                null, 
+                new ParameterizedTypeReference<ApiResponse>() {}
+            );
             
             if (response.getStatusCode() == HttpStatus.OK && Objects.nonNull(response.getBody())) {
-                UserResponse userProfile = response.getBody();
-                boolean isValid = Objects.nonNull(userProfile.getUserId());
+                ObjectMapper mapper = new ObjectMapper();
+                UserResponse userResponse = mapper.convertValue(response.getBody().getData(), new TypeReference<UserResponse>() { });
+                boolean isValid = Objects.nonNull(userResponse.getUserId());
                 
                 log.info("User validation result for ID {}: {}", userId, isValid);
                 return isValid;

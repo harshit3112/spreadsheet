@@ -1,0 +1,105 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spreadsheet-application
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5433/spreadsheet_db
+    driver-class-name: org.postgresql.Driver
+    username: spreadsheet_user
+    password: spreadsheet_password
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  
+  sql:
+    init:
+      mode: never
+
+# Database profiles for different environments
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/spreadsheet_dev
+    username: spreadsheet_user
+    password: spreadsheet_password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/spreadsheet_prod}
+    username: ${DATABASE_USERNAME:spreadsheet_user}
+    password: ${DATABASE_PASSWORD:spreadsheet_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  logging:
+    level:
+      com.spreadsheet: INFO
+      org.springframework.web: WARN
+      org.hibernate.SQL: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# User Profile Service Configuration
+user:
+  profile:
+    service:
+      url: http://localhost:8087
+
+# Logging Configuration
+logging:
+  level:
+    com.spreadsheet: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

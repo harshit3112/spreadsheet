@@ -1,0 +1,36 @@
+# Test configuration - uses H2 in-memory database
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  
+  h2:
+    console:
+      enabled: false
+
+# User Profile Service Configuration for testing
+user:
+  profile:
+    service:
+      url: http://localhost:8087
+
+# Logging Configuration for tests
+logging:
+  level:
+    com.spreadsheet: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    root: WARN
